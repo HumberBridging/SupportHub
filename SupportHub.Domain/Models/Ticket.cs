@@ -12,8 +12,27 @@ public class Ticket
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAtUtc { get; set; }
 
-    // PHASE 3 TODO: implement the status machine.
-    // Legal moves are Open -> InProgress -> Resolved -> Closed, one step at a time.
-    // Everything else must be refused with 409 Conflict.
-    // public bool CanTransitionTo(TicketStatus next) => ...
+    // A ticket must belong to a customer.
+    public int CustomerId { get; set; }
+    public Customer Customer { get; set; } = null!;
+
+    // A ticket may have an assigned agent.
+    public int? AssignedAgentId { get; set; }
+    public Agent? AssignedAgent { get; set; }
+
+    public ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
+    public ICollection<TicketTag> TicketTags { get; set; } = new List<TicketTag>();
+
+    /// <summary>
+    /// The status machine: Open -> InProgress -> Resolved -> Closed.
+    /// You may only move forward, one step at a time.
+    /// </summary>
+    public bool CanTransitionTo(TicketStatus next) => (Status, next) switch
+    {
+        (TicketStatus.Open, TicketStatus.InProgress) => true,
+        (TicketStatus.InProgress, TicketStatus.Resolved) => true,
+        (TicketStatus.Resolved, TicketStatus.Closed) => true,
+        _ => false
+    };
+
 }
