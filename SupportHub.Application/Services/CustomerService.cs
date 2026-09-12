@@ -40,21 +40,15 @@ public class CustomerService : ICustomerService
 
     public async Task<IEnumerable<TicketDto>> GetCustomerTicketsAsync(int id, CancellationToken cancellationToken = default)
     {
-        return await _db.Tickets
+        var tickets = await _db.Tickets
             .AsNoTracking()
             .Where(t => t.CustomerId == id)
             .OrderBy(t => t.Id)
-            .Select(t => new TicketDto(
-                t.Id,
-                t.Title,
-                t.Description,
-                t.Status,
-                t.Priority,
-                t.CustomerId,
-                t.AssignedAgentId,
-                t.CreatedAtUtc,
-                t.UpdatedAtUtc))
             .ToListAsync(cancellationToken);
+
+        // Mapped after ToListAsync so TicketDto.From runs in memory. Calling it inside
+        // a Select would make EF try to translate it into SQL, and fail.
+        return tickets.Select(TicketDto.From).ToList();
     }
 
     public async Task<bool> CustomerExistsAsync(int id, CancellationToken cancellationToken = default)

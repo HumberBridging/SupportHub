@@ -28,9 +28,9 @@ public class TicketService : ITicketService
             .OrderBy(t => t.Id)
             .ToListAsync(cancellationToken);
 
-        // Mapped after ToListAsync so ToDto runs in memory. Calling it inside a
-        // Select would make EF try to translate it into SQL, and fail.
-        return tickets.Select(ToDto).ToList();
+        // Mapped after ToListAsync so TicketDto.From runs in memory. Calling it inside
+        // a Select would make EF try to translate it into SQL, and fail.
+        return tickets.Select(TicketDto.From).ToList();
     }
 
     public async Task<TicketDto?> GetTicketByIdAsync(int id, CancellationToken cancellationToken = default)
@@ -39,7 +39,7 @@ public class TicketService : ITicketService
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
-        return ticket is null ? null : ToDto(ticket);
+        return ticket is null ? null : TicketDto.From(ticket);
     }
 
     public async Task<bool> TicketExistsAsync(int id, CancellationToken cancellationToken = default)
@@ -63,13 +63,18 @@ public class TicketService : ITicketService
 
     public async Task<TicketDto> CreateTicketAsync(TicketCreateDto ticketCreateDto, CancellationToken cancellationToken = default)
     {
+        // Both stamps share one timestamp so a brand-new ticket reads consistently.
+        var now = DateTime.UtcNow;
+
         var ticket = new Ticket
         {
             Title = ticketCreateDto.Title.Trim(),
             Description = ticketCreateDto.Description.Trim(),
             CustomerId = ticketCreateDto.CustomerId,
             AssignedAgentId = ticketCreateDto.AssignedAgentId,
-            Priority = ticketCreateDto.Priority
+            Priority = ticketCreateDto.Priority,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now
         };
 
         _db.Tickets.Add(ticket);
@@ -77,7 +82,7 @@ public class TicketService : ITicketService
 
         _logger.LogInformation("Created ticket {TicketId} for customer {CustomerId}", ticket.Id, ticket.CustomerId);
 
-        return ToDto(ticket);
+        return TicketDto.From(ticket);
     }
 
     public async Task UpdateTicketAsync(int id, TicketUpdateDto ticketUpdateDto, CancellationToken cancellationToken = default)
@@ -126,7 +131,7 @@ public class TicketService : ITicketService
 
         _logger.LogInformation("Ticket {TicketId} moved to {NextStatus}", id, nextStatus);
 
-        return ToDto(ticket);
+        return TicketDto.From(ticket);
     }
 
     public async Task DeleteTicketAsync(int id, CancellationToken cancellationToken = default)
@@ -143,15 +148,4 @@ public class TicketService : ITicketService
 
         _logger.LogInformation("Deleted ticket {TicketId}", id);
     }
-
-    private static TicketDto ToDto(Ticket ticket) => new(
-        ticket.Id,
-        ticket.Title,
-        ticket.Description,
-        ticket.Status,
-        ticket.Priority,
-        ticket.CustomerId,
-        ticket.AssignedAgentId,
-        ticket.CreatedAtUtc,
-        ticket.UpdatedAtUtc);
 }
