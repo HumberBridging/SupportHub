@@ -8,11 +8,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Scalar.AspNetCore" Version="2.17.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SupportHub.Application\SupportHub.Application.csproj" />
+    <ProjectReference Include="..\SupportHub.Infrastructure\SupportHub.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

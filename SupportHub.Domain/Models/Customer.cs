@@ -7,10 +7,5 @@ public class Customer
     public string Email { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
-    public Customer(int id, string name, string email)
-    {
-        Id = id;
-        Name = name;
-        Email = email;
-    }
+    public ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

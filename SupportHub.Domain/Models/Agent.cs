@@ -6,4 +6,6 @@ public class Agent
     public string DisplayName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
+
+    public ICollection<Ticket> AssignedTickets { get; set; } = new List<Ticket>();
 }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SupportHub.Domain.Models;
+﻿namespace SupportHub.Domain.Models;
 
 public class TicketTag
 {

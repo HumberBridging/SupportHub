@@ -2,26 +2,27 @@
 using Scalar.AspNetCore;
 using SupportHub.Application.Contracts;
 using SupportHub.Application.Services;
+using SupportHub.Infrastructure;
 
 namespace SupportHub.Api;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
 
         builder.Services.AddControllers();
-        
+
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
         // RFC 9457 Problem Details: structured, machine-readable error bodies.
         builder.Services.AddProblemDetails();
 
-        //TODO: Add the db context and other services here.
+        builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddScoped<ICustomerService, CustomerService>();
 
         var app = builder.Build();
@@ -31,6 +32,10 @@ public class Program
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
+
+            using var scope = app.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<SupportHubDbContext>();
+            await SeedData.EnsureSeededAsync(db);
         }
 
         app.UseHttpsRedirection();
@@ -43,6 +48,6 @@ public class Program
         app.MapGet("/health/live", () => Results.Ok(new { status = "live" }))
             .ExcludeFromDescription();
 
-        app.Run();
+        await app.RunAsync();
     }
 }
