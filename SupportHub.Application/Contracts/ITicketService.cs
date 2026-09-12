@@ -9,6 +9,8 @@ public interface ITicketService
 
     Task<TicketDto?> GetTicketByIdAsync(int id, CancellationToken cancellationToken = default);
 
+    Task<IEnumerable<TicketDto>> GetTicketsByCustomerAsync(int customerId, CancellationToken cancellationToken = default);
+
     Task<bool> TicketExistsAsync(int id, CancellationToken cancellationToken = default);
 
     Task<bool> AgentExistsAsync(int agentId, CancellationToken cancellationToken = default);

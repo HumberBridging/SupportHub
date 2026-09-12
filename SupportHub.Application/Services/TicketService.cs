@@ -21,9 +21,17 @@ public class TicketService : ITicketService
         _logger = logger;
     }
 
+    // Every query that ends up as a TicketDto starts here, so the tag include lives
+    // in one place instead of being repeated (and eventually forgotten) at each call site.
+    // Tracking is left to the caller: reads add AsNoTracking, writes need tracking.
+    private IQueryable<Ticket> TicketsWithTags() =>
+        _db.Tickets
+            .Include(t => t.TicketTags)
+            .ThenInclude(tt => tt.Tag);
+
     public async Task<IEnumerable<TicketDto>> GetAllTicketsAsync(CancellationToken cancellationToken = default)
     {
-        var tickets = await _db.Tickets
+        var tickets = await TicketsWithTags()
             .AsNoTracking()
             .OrderBy(t => t.Id)
             .ToListAsync(cancellationToken);
@@ -35,11 +43,22 @@ public class TicketService : ITicketService
 
     public async Task<TicketDto?> GetTicketByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var ticket = await _db.Tickets
+        var ticket = await TicketsWithTags()
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
         return ticket is null ? null : TicketDto.From(ticket);
+    }
+
+    public async Task<IEnumerable<TicketDto>> GetTicketsByCustomerAsync(int customerId, CancellationToken cancellationToken = default)
+    {
+        var tickets = await TicketsWithTags()
+            .AsNoTracking()
+            .Where(t => t.CustomerId == customerId)
+            .OrderBy(t => t.Id)
+            .ToListAsync(cancellationToken);
+
+        return tickets.Select(TicketDto.From).ToList();
     }
 
     public async Task<bool> TicketExistsAsync(int id, CancellationToken cancellationToken = default)
@@ -107,7 +126,9 @@ public class TicketService : ITicketService
 
     public async Task<TicketDto?> TryChangeTicketStatusAsync(int id, TicketStatus nextStatus, CancellationToken cancellationToken = default)
     {
-        var ticket = await _db.Tickets.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        // Tracked, so no AsNoTracking here: this method writes.
+        var ticket = await TicketsWithTags()
+            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
 
         if (ticket is null)
         {

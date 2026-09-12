@@ -25,6 +25,8 @@ public class Program
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddScoped<ICustomerService, CustomerService>();
         builder.Services.AddScoped<ITicketService, TicketService>();
+        builder.Services.AddScoped<ITicketCommentService, TicketCommentService>();
+        builder.Services.AddScoped<ITagService, TagService>();
 
         var app = builder.Build();
 
