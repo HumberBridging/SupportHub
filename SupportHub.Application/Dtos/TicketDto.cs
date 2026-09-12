@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SupportHub.Domain.Enums;
+using SupportHub.Domain.Models;
 
 namespace SupportHub.Application.Dtos;
 
@@ -12,7 +13,24 @@ public record TicketDto(
     int CustomerId,
     int? AssignedAgentId,
     DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc);
+    DateTime? UpdatedAtUtc)
+{
+    // SQL Server's datetime2 does not store a DateTimeKind, so dates read back from
+    // the database come out as Unspecified and serialise without the "Z". Stamping
+    // them as UTC here keeps every response in the same shape.
+    public static TicketDto From(Ticket ticket) => new(
+        ticket.Id,
+        ticket.Title,
+        ticket.Description,
+        ticket.Status,
+        ticket.Priority,
+        ticket.CustomerId,
+        ticket.AssignedAgentId,
+        DateTime.SpecifyKind(ticket.CreatedAtUtc, DateTimeKind.Utc),
+        ticket.UpdatedAtUtc is null
+            ? null
+            : DateTime.SpecifyKind(ticket.UpdatedAtUtc.Value, DateTimeKind.Utc));
+}
 
 public class TicketCreateDto
 {
