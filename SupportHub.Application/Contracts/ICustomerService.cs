@@ -8,8 +8,6 @@ public interface ICustomerService
 
     Task<CustomerDto?> GetCustomerByIdAsync(int id, CancellationToken cancellationToken = default);
 
-    Task<IEnumerable<TicketDto>> GetCustomerTicketsAsync(int id, CancellationToken cancellationToken = default);
-
     Task<bool> CustomerExistsAsync(int id, CancellationToken cancellationToken = default);
 
     Task<bool> EmailExistsAsync(string email, int? excludeCustomerId = null, CancellationToken cancellationToken = default);

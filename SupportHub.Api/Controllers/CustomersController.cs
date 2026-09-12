@@ -11,11 +11,16 @@ public class CustomersController : ControllerBase
 {
     private readonly ILogger<CustomersController> _logger;
     private readonly ICustomerService _customerService;
+    private readonly ITicketService _ticketService;
 
-    public CustomersController(ILogger<CustomersController> logger, ICustomerService customerService)
+    public CustomersController(
+        ILogger<CustomersController> logger,
+        ICustomerService customerService,
+        ITicketService ticketService)
     {
         _logger = logger;
         _customerService = customerService;
+        _ticketService = ticketService;
     }
 
     [HttpGet]
@@ -59,7 +64,8 @@ public class CustomersController : ControllerBase
             return NotFound();
         }
 
-        var tickets = await _customerService.GetCustomerTicketsAsync(id, cancellationToken);
+        // Tickets are queried by the ticket service, so only one place knows how to load them.
+        var tickets = await _ticketService.GetTicketsByCustomerAsync(id, cancellationToken);
 
         return Ok(tickets);
     }

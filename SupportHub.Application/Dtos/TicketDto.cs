@@ -13,11 +13,15 @@ public record TicketDto(
     int CustomerId,
     int? AssignedAgentId,
     DateTime CreatedAtUtc,
-    DateTime? UpdatedAtUtc)
+    DateTime? UpdatedAtUtc,
+    IEnumerable<string> Tags)
 {
     // SQL Server's datetime2 does not store a DateTimeKind, so dates read back from
     // the database come out as Unspecified and serialise without the "Z". Stamping
     // them as UTC here keeps every response in the same shape.
+    //
+    // Tags come from ticket.TicketTags, so every query that builds a TicketDto has to
+    // Include TicketTags and ThenInclude Tag. Miss it and the tags silently come back empty.
     public static TicketDto From(Ticket ticket) => new(
         ticket.Id,
         ticket.Title,
@@ -29,7 +33,11 @@ public record TicketDto(
         DateTime.SpecifyKind(ticket.CreatedAtUtc, DateTimeKind.Utc),
         ticket.UpdatedAtUtc is null
             ? null
-            : DateTime.SpecifyKind(ticket.UpdatedAtUtc.Value, DateTimeKind.Utc));
+            : DateTime.SpecifyKind(ticket.UpdatedAtUtc.Value, DateTimeKind.Utc),
+        ticket.TicketTags
+            .Select(ticketTag => ticketTag.Tag.Name)
+            .OrderBy(name => name)
+            .ToList());
 }
 
 public class TicketCreateDto
