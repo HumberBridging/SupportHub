@@ -1,4 +1,5 @@
 
+using Azure.Identity;
 using Scalar.AspNetCore;
 using SupportHub.Application.Contracts;
 using SupportHub.Application.Services;
@@ -21,6 +22,15 @@ public class Program
 
         // RFC 9457 Problem Details: structured, machine-readable error bodies.
         builder.Services.AddProblemDetails();
+
+        var keyVaultUrl = builder.Configuration["KeyVault:Url"];
+
+        if (!string.IsNullOrWhiteSpace(keyVaultUrl))
+        {
+            builder.Configuration.AddAzureKeyVault(
+                new Uri(keyVaultUrl),
+                new DefaultAzureCredential());
+        }
 
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.Services.AddScoped<ICustomerService, CustomerService>();
