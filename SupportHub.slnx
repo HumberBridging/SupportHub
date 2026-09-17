@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Ai/">
+    <Project Path="SupportHub.AiConsole/SupportHub.AiConsole.csproj" Id="64a8883b-5515-46f1-9c45-c4a53eba8e55" />
+  </Folder>
   <Project Path="SupportHub.Api/SupportHub.Api.csproj" />
   <Project Path="SupportHub.Application/SupportHub.Application.csproj" />
   <Project Path="SupportHub.Domain/SupportHub.Domain.csproj" />
